@@ -8,7 +8,7 @@ TODO
 
 ## Timeline
 
-04/21 - Exploratory Data Analysis, understanding the data
-04/28 - Data Cleaning and Preparation, data importing to R
-04/30 - Cross Validation and testing multiple models (pick best one)
-05/05 - Report completed
+1. 04/21 - Exploratory Data Analysis, understanding the data
+2. 04/28 - Data Cleaning and Preparation, data importing to R
+3. 04/30 - Cross Validation and testing multiple models (pick best one)
+4. 05/05 - Report completed
