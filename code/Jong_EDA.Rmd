@@ -1,0 +1,208 @@
+---
+title: "Jong_EDA"
+author: "Jong Ha Lee"
+date: "4/22/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+#Jong Directory
+setwd("~/Desktop/s154_project/data")
+```
+
+
+Reading in Data:
+```{r}
+b.train <- read.csv("train/yelp_academic_dataset_business_train.csv",
+                     stringsAsFactors = F)
+review.train <- read.csv("train/yelp_academic_dataset_review_train.csv",
+                         stringsAsFactors = F)
+
+tip <- read.csv("train/yelp_academic_dataset_tip.csv", stringsAsFactors = F)
+user <- read.csv("train/yelp_academic_dataset_user.csv", stringsAsFactors = F)
+checkin <- read.csv("train/yelp_academic_dataset_checkin.csv", stringsAsFactors = F)
+
+```
+
+
+# 1. Checkin Data
+
+What does Checkin Data Look like?
+```{r}
+head(checkin)
+
+#Time column looks weird. Summary on it?
+summary(checkin$time)
+```
+
+Note that the array part is: 'Date-hour: # of checkins from hour, to hour + 1'. If hour = 0, I am guessing that is 12AM. So for example, `r substr(checkin$time[1], 2, 10)`, which is the first array element of all of the checkins of the first row (first business basically), this means on this given Friday from 12AM - 1PM (we don't know the exact date/week/period, etc; just that it's a Friday) there were 5 checkins. Note this array format is in a character - may be better for cleaning by using Python.
+
+There is a "type" column. Are there any other types other than checkin?
+```{r}
+table(checkin$type)
+
+```
+
+Nope. This column may be just be there to differentiate that this is a tip-related dataset.
+
+Just as a sanity check: These should be all unique businesses.
+```{r}
+length(unique(checkin$business_id)) #ok, 2877 uniques
+```
+
+We don't know what X column is yet. Was not described in Kaggle.
+
+So, conclusions from exploring Checkin dataset:
+
+1. We may need to do some cleaning to get useful feature engineering for the `time` column, which may be better suited for Python. There could be an R package.
+2. `type` column was useless, so we got rid of it.
+2. There are 2877 unique businesses which have checkins. Intuitively this should be the same all across, unless it's a completely new business without any check ins, which is possible because not everyone checks into the business even though they may review it, etc.
+3. We don't know what X column is.
+
+----
+
+# 2. Tip Data
+
+Just looking at a sample of the data:
+```{r}
+head(tip)
+```
+
+Looks pretty straightforward. *Note that this is the dataset not for tipping, but for giving tips about the restaurant*. Also there still is this "X" column which we don't know what it is yet. It might be best to just get rid of this. For now let's keep it.
+
+We also notice there is a type column again repeated here. Is it just describing that this is a tip-related dataset again, just like the checkin dataset?
+```{r}
+table(tip$type)
+```
+
+Looks like it is. We note that may be this column could be used to say these data re from the tip dataset when joining multiple datasets for feature engineering.
+
+How many unique businesses are listed in this dataset? 
+```{r}
+length(unique(tip$business_id))
+```
+
+There are 2457 businesses with tips. So comparing with the checkin dataset's number of businesses, which was `r length(unique(checkin$business_id))`, it is around `r length(unique(checkin$business_id)) - length(unique(tip$business_id))` less. This may be because some restaurants may be new and not enough people went, so there aren't any tips people listed about that restaurant.
+
+We have a likes column. Let's do a quick frequency analysis on this:
+```{r}
+table(tip$likes)
+
+#Let's look at the tip data with 3 or more likes. Why did it get so much?
+
+tip[tip$likes %in% c(3,4,5), ]
+
+```
+
+From eyeballing, it seems like there's more text? I'm not really an expert in NLP, but let's have a quick bar graph of average number of texts per likes?
+
+```{r}
+tip$numchars <- nchar(tip$text)
+
+library(ggplot2)
+ggplot(data = tip, aes(x = likes, y = numchars)) + stat_summary(fun.y="mean", geom="bar")
+```
+
+It seems like the amount of text written for tip increases, as the number of likes incresaes pretty linearly. Something to keep in mind, though there are only 5 reviews with 3 likes, 4 with 4 likes, and 1 with 5 likes.
+
+----
+
+# 3. User Data
+
+Looking at a sample of user data:
+
+```{r}
+head(user)
+```
+
+Note that useful, funny, and cool votes are actions done by the user, which indicates the level of activity of the user basically. On the other hand, there are actions which the user received, which are `compliment_*` columns, etc. These are basically user attributes. These may be could be used to either 1) Set a baseline "star" rating the user usually gives, and then add/subtract as necessary based on the particular business, or 2) the other way around. 
+
+It will also be best to convert `friends` column into a number for later feature engineering; we could think about joining these friends column by users as well, but since we didn't get the full user dataset, we'll have a lot of missing values/attributes of friends, so a number conversion may be best.
+
+```{r}
+head(user$friends)
+```
+
+
+What is the correlation between compliment numbers (i.e. compliments received by user)?
+
+```{r}
+library(corrplot)
+corrplot(corr = cor(user[, grep("compliment", colnames(user))]), 
+         method = "circle", type = "upper", is.corr = FALSE)
+```
+
+Is review_count correlated with average stars given by the user?
+
+```{r}
+cor(user$review_count, user$average_stars)
+```
+
+No, little to zero correlation. Which column has the highest correlation with average stars? Something to find out.
+
+-------
+
+# Business Train Data
+
+```{r}
+head(b.train)
+```
+
+Note there are some empty values in neighborhood. We may need to fill them up via google maps API or something.
+```{r}
+sort(table(b.train$neighborhood))
+```
+
+The most important variable is here: `stars`, which is star rating of the business, our response variable. Note that the `stars` column consists of only a few unique values:
+```{r}
+table(b.train$stars)
+```
+
+They are categorized by half-star basis. So do we do a classification or, a regression (then rounding) algorithm?
+
+Also, plotting distribution just for exploratory's sake:
+```{r}
+hist(b.train$stars)
+```
+
+Seems like a pretty normal distribution.
+
+Also, note that we only have US restaurants, and only in these areas: Arizona, North Carolina, Nevada, Ohio, Penssylvania, and Wisconsin.
+```{r}
+table(b.train$state)
+```
+
+In this dataset, there's a lot of attributes in these array-formatted columns that we need to expand on, as categorical indicator variables. Especially `attributes`, `categories`, and `hours`. 
+
+Also there are some restaurants that are closed. Not sure how this will impact our predictions yet:
+```{r}
+table(b.train$is_open)
+```
+
+
+-----
+
+# 5. Review Train Data
+
+And lastly, review data.
+```{r}
+head(review.train, 5)
+```
+
+Basically consists of reactions to the user (columns `useful, cool, funny`) and a text which is the review itself. May need to clean the review text column `text`. 
+
+We also have the `stars` column which is the star rating the review gave for that business. However, it's not rounded to half stars - just rounded to 1-5 normal stars. This may be a data issue.
+
+Plot between number of words, and star rating?
+```{r}
+review.train$numchars <- nchar(review.train$text)
+ggplot(data = review.train, aes(x = stars, y = numchars)) +
+  stat_summary(fun.y="mean", geom="bar")
+```
+
+
+
+
+

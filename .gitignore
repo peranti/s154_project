@@ -1,2 +1,4 @@
 .DS_Store
 data/yelp_academic_*
+data/test/yelp_academic_*
+data/train/yelp_academic_*
