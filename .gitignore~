@@ -1,0 +1,7 @@
+.DS_Store
+<<<<<<< HEAD
+data/yelp_academic_*
+data/test/yelp_academic_*
+data/train/yelp_academic_*
+=======
+>>>>>>> 17fd476e7e11e3360b6940ca9fb13b6c417f32f3
