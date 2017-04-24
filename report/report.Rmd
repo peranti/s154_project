@@ -1,0 +1,29 @@
+---
+title: "Stat 154 Final Project"
+author: "Bryan Alcorn, Paul Bramsen, Jong Ha Lee, Ying Luo, Vaibhav Ramamoorthy"
+date: "5/5/2017"
+output: pdf_document
+header-includes:
+- \usepackage{fancyhdr}
+- \pagestyle{fancy}
+- \fancyhead[CO,CE]{Final Project -- Stat154 -- Spring 17}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r child = 'intro.Rmd'}
+```
+
+```{r child = 'data.Rmd'}
+```
+
+```{r child = 'models.Rmd'}
+```
+
+```{r child = 'analysis.Rmd'}
+```
+
+```{r child = 'conclusion.Rmd'}
+```
