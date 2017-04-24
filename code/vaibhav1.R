@@ -35,9 +35,9 @@ array_parser <- function(df, column, fn) {
   return(lapply(strsplit(gsub("'|[[:space:]]|\\[|\\]","",df[,column]),","), fn))
 }
 
-## ex: array_parser(business, "categories", length)
+#### BUSINESS.CATEGORIES
 
-business.categories_one.hot <- function(categories) {
+business.categories_fn <- function(categories) {
   v <- rep(0, 6)
   n <- c("Mexican", "Restaurants", "Coffee&Tea", "Food", "Pizza", "Chinese")
   names(v) <- n
@@ -49,7 +49,15 @@ business.categories_one.hot <- function(categories) {
   return(v)
 }
 
-q <- array_parser(business, "categories", business.categories_one.hot)
-q. <- data.frame(matrix(unlist(q), nrow=length(q)))
-colnames(q.) <- c("Mexican", "Restaurants", "Coffee&Tea", "Food", "Pizza", "Chinese")
+business.categories.d <- array_parser(business, "categories", business.categories_fn)
+business.categories <- data.frame(matrix(unlist(q), nrow=length(q), byrow=T))
+colnames(business.categories) <- c("Mexican", "Restaurants", "Coffee&Tea", "Food", "Pizza", "Chinese")
+
+#### BUSINESS.HOURS
+
+business.hours_fn <- function(hours) {
+  
+}
+
+
 
