@@ -23,7 +23,7 @@ review.train <- read.csv("train/yelp_academic_dataset_review_train.csv",
 tip <- read.csv("train/yelp_academic_dataset_tip.csv", stringsAsFactors = F)
 user <- read.csv("train/yelp_academic_dataset_user.csv", stringsAsFactors = F)
 checkin <- read.csv("train/yelp_academic_dataset_checkin.csv", stringsAsFactors = F)
-
+save.image(file = "train/alltrain.RData")
 ```
 
 
@@ -57,7 +57,6 @@ We don't know what X column is yet. Was not described in Kaggle.
 So, conclusions from exploring Checkin dataset:
 
 1. We may need to do some cleaning to get useful feature engineering for the `time` column, which may be better suited for Python. There could be an R package.
-2. `type` column was useless, so we got rid of it.
 2. There are 2877 unique businesses which have checkins. Intuitively this should be the same all across, unless it's a completely new business without any check ins, which is possible because not everyone checks into the business even though they may review it, etc.
 3. We don't know what X column is.
 
