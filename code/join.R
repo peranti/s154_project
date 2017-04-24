@@ -1,20 +1,20 @@
 # join.R
 # Joins all datasets together (separates train and test)
 
-setwd("~/Desktop/s154_project/data")
+setwd("../")
 library(dplyr)
 
 ######## TRAINING DATA ########
 
 #Reading in all CSVs and saving into RData for easier reading in next time
-b.train <- read.csv("train/yelp_academic_dataset_business_train.csv",
+b.train <- read.csv("data/train/yelp_academic_dataset_business_train.csv",
                     stringsAsFactors = F)
-review.train <- read.csv("train/yelp_academic_dataset_review_train.csv",
+review.train <- read.csv("data/train/yelp_academic_dataset_review_train.csv",
                          stringsAsFactors = F)
 
-tip <- read.csv("train/yelp_academic_dataset_tip.csv", stringsAsFactors = F)
-user <- read.csv("train/yelp_academic_dataset_user.csv", stringsAsFactors = F)
-checkin <- read.csv("train/yelp_academic_dataset_checkin.csv", stringsAsFactors = F)
+tip <- read.csv("yelp_academic_dataset_tip.csv", stringsAsFactors = F)
+user <- read.csv("yelp_academic_dataset_user.csv", stringsAsFactors = F)
+checkin <- read.csv("yelp_academic_dataset_checkin.csv", stringsAsFactors = F)
 save.image(file = "train/alltrain.RData")
 
 #Removing train datasets
@@ -62,7 +62,7 @@ sapply(1:2, function(x){
   
   
   # Exporting joined data
-  if(i == 1) save(join4, file = "train/train_join.RData") else save(join4, file = "test/test_join.RData")
+  if(x == 1) save(join4, file = "train/train_join.RData") else save(join4, file = "test/test_join.RData")
 })
 
 
