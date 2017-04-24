@@ -24,8 +24,11 @@ t. <- t %>%
   summarize(count = n()) %>%
   arrange(desc(count))
 
+
+######################## ONLY VAIBHAV BELOW #############################
+
 array_parser <- function(df, column, fn) {
-  return(sapply(strsplit(gsub("'|[[:space:]]|\\[|\\]","",df[,column]),","), fn))
+  return(lapply(strsplit(gsub("'|[[:space:]]|\\[|\\]","",df[,column]),","), fn))
 }
 
 ## ex: array_parser(business, "categories", length)
@@ -39,7 +42,10 @@ business.categories_one.hot <- function(categories) {
       v[i] <- 1
     }
   }
+  return(v)
 }
 
-array_parser(business, "categories", business.categories_one.hot)
+q <- array_parser(business, "categories", business.categories_one.hot)
+q. <- data.frame(matrix(unlist(q), nrow=length(q)))
+colnames(q.) <- c("Mexican", "Restaurants", "Coffee&Tea", "Food", "Pizza", "Chinese")
 
