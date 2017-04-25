@@ -1,5 +1,6 @@
 library(data.table)
 library(dplyr)
+library(zoo)
 
 setwd("../")
 # business <- fread("data/train/yelp_academic_dataset_business_train.csv", 
@@ -40,14 +41,9 @@ array_parser <- function(df, column, fn) {
 #### BUSINESS.CATEGORIES
 
 business.categories_fn <- function(categories) {
-  v <- rep(0, 6)
   n <- c("Mexican", "Restaurants", "Coffee&Tea", "Food", "Pizza", "Chinese")
+  v <- ifelse(n %in% categories, 1, 0)
   names(v) <- n
-  for(i in 1:length(n)) {
-    if(n[i] %in% categories) {
-      v[i] <- 1
-    }
-  }
   return(v)
 }
 
@@ -88,7 +84,7 @@ business.hours_fn <- function(hours) {
               start = time_completer(start),
               end = time_completer(end)) %>%
     mutate(hours = time_subtracter(start, end))
-  print(parsed.df)
+  # print(parsed.df)
 
   rvec <- rep(0,23)
   d <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday",
@@ -97,8 +93,9 @@ business.hours_fn <- function(hours) {
          "total_hrs", "avg_hrs")
   names(rvec) <- d
   for(i in 1:7) {
-    rvec[i] <- ifelse(sum(d[i] == parsed.df$day) > 0, 1, 0)
-    rvec[i+7] <- sum(d[i] == parsed.df$day)
+    t <- sum(d[i] == parsed.df$day)
+    rvec[i] <- ifelse(t > 0, 1, 0)
+    rvec[i+7] <- t
     rvec[i+14] <- sum(parsed.df$hours[parsed.df$day == d[i]])
     rvec['total_hrs'] <- sum(parsed.df$hours)
     rvec['avg_hrs'] <- mean(parsed.df$hours)
@@ -112,5 +109,6 @@ colnames(business.hours) <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Fri
                               "Mon_ct", "Tues_ct", "Wed_ct", "Thurs_ct", "Fri_ct", "Sat_ct", "Sun_ct",
                               "Mon_hrs", "Tues_hrs", "Wed_hrs", "Thurs_hrs", "Fri_hrs", "Sat_hrs", "Sun_hrs",
                               "total_hrs", "avg_hrs")
+business.hours_na.rm <- na.aggregate(business.hours)
 
 
