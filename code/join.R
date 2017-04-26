@@ -15,13 +15,7 @@ tip <- read.csv("data/yelp_academic_dataset_tip.csv", stringsAsFactors = F)
 user <- read.csv("data/yelp_academic_dataset_user.csv", stringsAsFactors = F)
 checkin <- read.csv("data/yelp_academic_dataset_checkin.csv", stringsAsFactors = F)
 
-
-######## TESTING DATA ########
-b.test <- read.csv("data/test/yelp_academic_dataset_business_test.csv", 
-                    stringsAsFactors = F)
-review.test <- read.csv("data/test/yelp_academic_dataset_review_test.csv",
-                          stringsAsFactors = F)
-
+#Cleaning it up
 train_data <- list(review = review.train, checkin = checkin, business = b.train, tip = tip, user = user)
 train_cleaned <- list()
 for(i in 1:length(train_data)){
@@ -77,16 +71,28 @@ for (i in 1:num_predictors_init) {
   }
 }
 
+#Just doing a check
 counter = 0
 sapply(joined_train, function(x) {
   if (sum(is.na(x)) != 0) {
     counter = counter + 1
   }
+
 })
 counter
 
+#Saving Data
+save(joined_train, file = "train/train_join.RData")
 
 
+######## TESTING DATA ########
+b.test <- read.csv("data/test/yelp_academic_dataset_business_test.csv", 
+                   stringsAsFactors = F)
+review.test <- read.csv("data/test/yelp_academic_dataset_review_test.csv",
+                        stringsAsFactors = F)
+
+# # Exporting joined data
+# if(x == 1) save(join4, file = "train/train_join.RData") else save(join4, file = "test/test_join.RData")
 
 
 
