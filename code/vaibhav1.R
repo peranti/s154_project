@@ -1,6 +1,7 @@
 library(data.table)
 library(dplyr)
 library(zoo)
+library(tidyr)
 
 setwd("../")
 # business <- fread("data/train/yelp_academic_dataset_business_train.csv", 
@@ -33,9 +34,7 @@ t. <- t %>%
 ######################## ONLY VAIBHAV BELOW #############################
 
 array_parser <- function(df, column, fn) {
-  cleaned_col <- gsub("'|[[:space:]]|\\[|\\]","",df[,column])
-  vector <- strsplit(cleaned_col,",")
-  return(lapply(vector, fn))
+  return(lapply(strsplit(gsub("'|[[:space:]]|\\[|\\]","",df[,column]),","), fn))
 }
 
 #### BUSINESS.CATEGORIES
@@ -111,4 +110,37 @@ colnames(business.hours) <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Fri
                               "total_hrs", "avg_hrs")
 business.hours_na.rm <- na.aggregate(business.hours)
 
+#### CHECKIN.TIME
 
+checkin.time_fn <- function(time) {
+  parsed <- unlist(strsplit(time, ":|-"))
+  parsed.df <- data.frame(matrix(parsed, ncol=3, byrow=T), stringsAsFactors = F)
+  names(parsed.df) <- c("Day", "Hour", "Checkins")
+  parsed.df$Hour <- as.numeric(parsed.df$Hour)
+  parsed.df$Checkins <- as.numeric(parsed.df$Checkins)
+  # parsed.df <- parsed.df %>%
+  #   spread(key = Hour, value = Checkins)
+  vec <- rep(0, 35)
+  n <- c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun",
+         "Mon_bf", "Tue_bf", "Wed_bf", "Thu_bf", "Fri_bf", "Sat_bf", "Sun_bf",
+         "Mon_l", "Tue_l", "Wed_l", "Thu_l", "Fri_l", "Sat_l", "Sun_l",
+         "Mon_d", "Tue_d", "Wed_d", "Thu_d", "Fri_d", "Sat_d", "Sun_d",
+         "Mon_ln", "Tue_ln", "Wed_ln", "Thu_ln", "Fri_ln", "Sat_ln", "Sun_ln")
+  names(vec) <- n
+  for(i in 1:7){
+    vec[i] <- sum(parsed.df$Checkins[parsed.df$Day == n[i]])
+    vec[i+7] <- sum(parsed.df$Checkins[parsed.df$Day == n[i] & between(parsed.df$Hour, 6, 9)])
+    vec[i+14] <- sum(parsed.df$Checkins[parsed.df$Day == n[i] & between(parsed.df$Hour, 10, 14)])
+    vec[i+21] <- sum(parsed.df$Checkins[parsed.df$Day == n[i] & between(parsed.df$Hour, 17, 21)])
+    vec[i+28] <- sum(parsed.df$Checkins[parsed.df$Day == n[i] & (parsed.df$Hour < 2 | parsed.df$Hour > 23)])
+  }
+  return(vec)
+}
+
+checkin.time.d <- array_parser(checkin, "time", checkin.time_fn)
+checkin.time <- data.frame(matrix(unlist(checkin.time.d), nrow=length(checkin.time.d), byrow=T))
+colnames(checkin.time) <- c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun",
+                            "Mon_bf", "Tue_bf", "Wed_bf", "Thu_bf", "Fri_bf", "Sat_bf", "Sun_bf",
+                            "Mon_l", "Tue_l", "Wed_l", "Thu_l", "Fri_l", "Sat_l", "Sun_l",
+                            "Mon_d", "Tue_d", "Wed_d", "Thu_d", "Fri_d", "Sat_d", "Sun_d",
+                            "Mon_ln", "Tue_ln", "Wed_ln", "Thu_ln", "Fri_ln", "Sat_ln", "Sun_ln")
