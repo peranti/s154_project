@@ -1,70 +1,93 @@
 # join.R
 # Joins all datasets together (separates train and test)
 
-setwd("~/Desktop/s154_project/data")
 library(dplyr)
 
 ######## TRAINING DATA ########
 
 #Reading in all CSVs and saving into RData for easier reading in next time
-b.train <- read.csv("train/yelp_academic_dataset_business_train.csv",
+b.train <- read.csv("data/train/yelp_academic_dataset_business_train.csv",
                     stringsAsFactors = F)
-review.train <- read.csv("train/yelp_academic_dataset_review_train.csv",
+review.train <- read.csv("data/train/yelp_academic_dataset_review_train.csv",
                          stringsAsFactors = F)
 
-tip <- read.csv("train/yelp_academic_dataset_tip.csv", stringsAsFactors = F)
-user <- read.csv("train/yelp_academic_dataset_user.csv", stringsAsFactors = F)
-checkin <- read.csv("train/yelp_academic_dataset_checkin.csv", stringsAsFactors = F)
-save.image(file = "train/alltrain.RData")
-
-#Removing train datasets
-rm(list=c("b.train", "review.train"))
+tip <- read.csv("data/yelp_academic_dataset_tip.csv", stringsAsFactors = F)
+user <- read.csv("data/yelp_academic_dataset_user.csv", stringsAsFactors = F)
+checkin <- read.csv("data/yelp_academic_dataset_checkin.csv", stringsAsFactors = F)
 
 
 ######## TESTING DATA ########
-b.train <- read.csv("test/yelp_academic_dataset_business_test.csv", 
+b.test <- read.csv("data/test/yelp_academic_dataset_business_test.csv", 
                     stringsAsFactors = F)
-review.train <- read.csv("test/yelp_academic_dataset_review_test.csv",
-                         stringsAsFactors = F)
-save.image(file = "test/alltest.RData")
+review.test <- read.csv("data/test/yelp_academic_dataset_review_test.csv",
+                          stringsAsFactors = F)
+
+train_data <- list(review = review.train, checkin = checkin, business = b.train, tip = tip, user = user)
+train_cleaned <- list()
+for(i in 1:length(train_data)){
+  df <- train_data[[i]]
+  df <- df[ , -c(1, grep("type", colnames(df), ignore.case = T))] #removing first row and the
+  colnames(df) <- paste0(paste0(substr(names(train_data)[i], 1,1), "."), colnames(df))
+  train_cleaned <- append(train_cleaned, list(df))
+}
+names(train_cleaned) <- c("review", "checkin", "business", "tip", "user")
+
+#Joining reviews with business on the business id
+rev_bus <- dplyr::left_join(x = train_cleaned$review, y = train_cleaned$business, 
+                          by = c("r.business_id" = "b.business_id"))
+
+ 
+#Joining reviews and businesses with the checkins for each business
+rb_check <- dplyr::left_join(x = rev_bus, y = train_cleaned$checkin, by = c("r.business_id" = "c.business_id"))
+
+#Joining previous with user
+rbc_user <- dplyr::left_join(x = rb_check, y = train_cleaned$user, by = c("r.user_id" = "u.user_id"))
+
+#joining in the previous with tips for a business
+rbcu_tip = dplyr::left_join(x = rbc_user, y = train_cleaned$tip, by = c("r.business_id" = "t.business_id", "r.user_id" = "t.user_id"))
 
 
-#Creating Joining Sets for Training and Test
-sapply(1:2, function(x){
-  if(x == 1) load("train/alltrain.RData") else load("test/alltest.RData")
-  # Joining Review with Tip
-  all.df <- list(review = review.train, checkin = checkin, 
-                 business = b.train, tip = tip, user = user)
-  clean.df <- list()
-  for(i in 1:length(all.df)){
-    df <- all.df[[i]]
-    df <- df[ , -c(1, grep("type", colnames(df), ignore.case = T))]
-    colnames(df) <- paste0(paste0(substr(names(all.df)[i], 1,1), "."), colnames(df))
-    clean.df <- append(clean.df, list(df))
+#### CLEANING ##### 
+joined_train = rbcu_tip
+
+#func for mode, ignores nyll --- from Stack Overflow
+Mode <- function(x) { 
+  ux <- na.omit(unique(x) )
+  tab <- tabulate(match(x, ux)); ux[tab == max(tab) ]
+}
+
+#Cleaning up the tip text
+na.t.test = is.na(joined_train$t.text)
+joined_train$t.text[na.t.test] = "NO TIP"
+
+num_predictors_init = length(colnames(joined_train))
+for (i in 1:num_predictors_init) {
+  na.index = is.na(joined_train[,i])
+  
+  #filling integers with average
+  if (is.numeric(joined_train[,i])) {
+    this_mean = mean(joined_train[,i], na.rm = TRUE)
+    joined_train[,i][na.index] = this_mean
   }
   
-  names(clean.df) <- c("review", "checkin", "business", "tip", "user")
-  
-  #Joining on Review and Business
-  join1 <- dplyr::left_join(x = clean.df$review, y = clean.df$business, 
-                            by = c("r.business_id" = "b.business_id"))
-  
-  
-  # Joining Tip with Business (not yet because of issues)
-  #join2 <- left_join(x = tip, y = b.train, by = "business_id")
-  
-  # Joining Business with Checkin
-  join3 <- left_join(x = join1, y = clean.df$checkin, 
-                     by = c("r.business_id" = "c.business_id"))
-  
-  # Joining Checkin with User
-  join4 <- left_join(x = join3, y = clean.df$user, by = c("r.user_id" = "u.user_id"))
-  
-  
-  # Exporting joined data
-  if(i == 1) save(join4, file = "train/train_join.RData") else save(join4, file = "test/test_join.RData")
+  #filling characters with mode
+  if (is.character(joined_train[,i])) {
+    this_mode = Mode(joined_train[,i])
+    joined_train[,i][na.index] = this_mode
+  }
+}
+
+counter = 0
+sapply(joined_train, function(x) {
+  if (sum(is.na(x)) != 0) {
+    counter = counter + 1
+  }
 })
+counter
 
 
-load('test/test_join.RData')
+
+
+
+
 
