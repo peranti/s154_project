@@ -1,56 +1,21 @@
 library(data.table)
+library(plyr)
 library(dplyr)
 library(zoo)
 library(tidyr)
 
 setwd("../")
-# business <- fread("data/train/yelp_academic_dataset_business_train.csv", 
-#                   data.table = FALSE)
-# checkin <- fread("/Users/vaibhav/Documents/Year3_Junior/Semester 2/Stat 154/project/data/yelp_academic_dataset_checkin.csv", data.table = FALSE)
-# review <- fread("/Users/vaibhav/Documents/Year3_Junior/Semester 2/Stat 154/project/data/yelp_academic_dataset_review_train.csv", data.table = FALSE)
-# tip <- fread("/Users/vaibhav/Documents/Year3_Junior/Semester 2/Stat 154/project/data/yelp_academic_dataset_tip.csv", data.table = FALSE)
-# user <- fread("/Users/vaibhav/Documents/Year3_Junior/Semester 2/Stat 154/project/data/yelp_academic_dataset_user.csv", data.table = FALSE)
-
 load("data/train/alltrain.RData")
 
-## EDA to explore review+tip join issue
-
-r <- review %>%
-  select(business_id, user_id)
-t <- tip %>%
-  select(business_id, user_id)
-j <- left_join(r, t, by = c("business_id" = "business_id", "user_id" = "user_id"))
-
-r. <- r %>%
-  group_by(business_id, user_id) %>%
-  summarize(count = n()) %>%
-  arrange(desc(count))
-t. <- t %>%
-  group_by(business_id, user_id) %>%
-  summarize(count = n()) %>%
-  arrange(desc(count))
-
-
-######################## ONLY VAIBHAV BELOW #############################
+## array_parser digests columns that are in array-string form and turns them into usable features when fed a helper function
 
 array_parser <- function(df, column, fn) {
   return(lapply(strsplit(gsub("'|[[:space:]]|\\[|\\]","",df[,column]),","), fn))
 }
 
-#### BUSINESS.CATEGORIES
+#### BUSINESS
 
-business.categories_fn <- function(categories) {
-  n <- c("Mexican", "Restaurants", "Coffee&Tea", "Food", "Pizza", "Chinese")
-  v <- ifelse(n %in% categories, 1, 0)
-  names(v) <- n
-  return(v)
-}
-
-business.categories.d <- array_parser(business, "categories", business.categories_fn)
-business.categories <- data.frame(matrix(unlist(business.categories.d), nrow=length(business.categories.d), byrow=T))
-colnames(business.categories) <- c("Mexican", "Restaurants", "Coffee&Tea", "Food", "Pizza", "Chinese")
-
-#### BUSINESS.HOURS
+###### BUSINESS.HOURS
 
 business.hours_fn <- function(hours) {
   hours <- paste(hours,"-",sep="")
@@ -84,7 +49,7 @@ business.hours_fn <- function(hours) {
               end = time_completer(end)) %>%
     mutate(hours = time_subtracter(start, end))
   # print(parsed.df)
-
+  
   rvec <- rep(0,23)
   d <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday",
          "Mon_ct", "Tues_ct", "Wed_ct", "Thurs_ct", "Fri_ct", "Sat_ct", "Sun_ct",
@@ -109,6 +74,75 @@ colnames(business.hours) <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Fri
                               "Mon_hrs", "Tues_hrs", "Wed_hrs", "Thurs_hrs", "Fri_hrs", "Sat_hrs", "Sun_hrs",
                               "total_hrs", "avg_hrs")
 business.hours_na.rm <- na.aggregate(business.hours)
+
+###### BUSINESS.ATTRIBUTES
+
+# Cleaning Attributes
+atts <- business$attributes
+atts <- gsub("\\}|\\[|\\]", "", gsub(",\\s\".{3,15}:", ",", atts))
+atts <- gsub("('|\"|\\{|\\})", "", atts)
+
+#Splitting by column name (attribute) and value
+atts.list <- lapply(atts, function(x) unlist(strsplit(x, split = ",")))
+
+# Making DF function
+make_df <- function(at){
+  # Input: Character vector with both column name and value per element of vector
+  # Output: data-frame structure of all the elements (column-value pair)
+  split.vals <- strsplit(at, split = ":")
+  col.nm <- c()
+  vals <- c()
+  if(length(split.vals) == 0){
+    return(NA)
+  }
+  else{
+    for(i in 1:length(split.vals)){
+      col.nm <- append(col.nm, trimws(split.vals[[i]][1]))
+      vals <- append(vals, trimws(split.vals[[i]][2]))
+    }
+    final.df <- t(data.frame(vals))
+    colnames(final.df) <- col.nm
+    rownames(final.df) <- NULL
+    return(final.df)
+  }
+}
+
+# Filling in dataframe columns
+atts.df <- data.frame()
+for(i in 1:length(atts.list)){
+  atts.df <- rbind.fill(atts.df, as.data.frame(make_df(atts.list[[i]])))
+  # cat("Processed:", i, "of", length(atts.list), "businesses..\n")
+}
+
+# Weird column
+atts.df$`make_df(atts.list[[i]])` <- NULL
+
+# Currently all columns in Factor.
+# Converting T-F columns to numeric
+for(i in 1:ncol(atts.df)){
+  if( sum( !(atts.df[, i] %in% c("True", "False", NA)) ) == 0){
+    atts.df[, i] <- as.numeric(as.logical(atts.df[, i]))
+  }
+}
+
+business.attributes <- atts.df
+
+###### BUSINESS.CATEGORIES
+
+business.categories_fn <- function(categories) {
+  n <- c("Mexican", "Restaurants", "Coffee&Tea", "Food", "Pizza", "Chinese")
+  v <- ifelse(n %in% categories, 1, 0)
+  names(v) <- n
+  return(v)
+}
+
+business.categories.d <- array_parser(business, "categories", business.categories_fn)
+business.categories <- data.frame(matrix(unlist(business.categories.d), nrow=length(business.categories.d), byrow=T))
+colnames(business.categories) <- c("Mexican", "Restaurants", "Coffee&Tea", "Food", "Pizza", "Chinese")
+
+#### CHECKIN
+
+###### CHECKIN.TIME
 
 #### CHECKIN.TIME
 
