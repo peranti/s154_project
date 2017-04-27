@@ -1,5 +1,5 @@
 *.DS_Store
 *.Rhistory
-data/*
+yelp_academic_*
 data/test/*
 data/train/*
