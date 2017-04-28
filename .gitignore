@@ -3,3 +3,4 @@
 yelp_academic_*
 data/test/*
 data/train/*
+data/clean/*

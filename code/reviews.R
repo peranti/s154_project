@@ -15,10 +15,21 @@ library(SnowballC)
 library(slam)
 library(RWeka)
 
-load("data/train/alltrain.RData")
+review.train <- read.csv("data/train/yelp_academic_dataset_review_train.csv",
+                         stringsAsFactors = F)
 
-#Cleaning via Corpus
-review_corpus <- Corpus(VectorSource(review.train$text))
+review.test <- read.csv("data/test/yelp_academic_dataset_review_test.csv",
+                        stringsAsFactors = F)
+review.test$stars <- NA
+
+review.all <- rbind(review.train, review.test)
+
+#Removing unecessary columns
+review.all <- subset(review.all, select = -c(X, type))
+
+
+#Cleaning review text via Corpus
+review_corpus <- Corpus(VectorSource(review.all$text))
 review_corpus = tm_map(review_corpus, content_transformer(tolower))
 review_corpus = tm_map(review_corpus, removeNumbers)
 review_corpus = tm_map(review_corpus, removePunctuation)
@@ -32,9 +43,9 @@ inspect(review_corpus[1])
 
 #Dividing into Reviews = Rows, Columns = words/terms
 #by term frequency
-review_termfreq <- DocumentTermMatrix(review_corpus, 
-                                      control = list(tokenize = TrigramTokenizer))
-
+review_termfreq <- DocumentTermMatrix(review_corpus)
+#review_termfreq <- DocumentTermMatrix(review_corpus, 
+#                                      control = list(tokenize = TrigramTokenizer))
 #review_termfreq <- removeSparseTerms(review_termfreq, sparse = 0.97)
 
 #Using Tf-Idf to weight by relative importance to document, not by term frequency
@@ -44,7 +55,7 @@ review_tfidf <- removeSparseTerms(review_tfidf, sparse = 0.98)
 
 
 
-inspect(review_tfidf[500:505, 500:505])
+review_tfidf
 
 
 # Our own empirical most negative and positive words
@@ -81,13 +92,17 @@ emp.pos.score <- emp.weight * tm_term_score(x = review_termfreq, terms = emp.pos
 emp.neg.score <- emp.weight * tm_term_score(x = review_termfreq, terms = emp.neg_words)
 
 # Total Sentiment Scores
-review.train$pos.score <- (emp.pos.score + pos.score) / wordcount.per
-review.train$neg.score <- (emp.neg.score + neg.score) / wordcount.per
+review.all$pos.score <- (emp.pos.score + pos.score) / wordcount.per
+review.all$neg.score <- (emp.neg.score + neg.score) / wordcount.per
 
 # Total Output result: review.train + sentiment scores + relative importance matrix of words to document determined by tf-idf, with max 98% sparsity in term column
 
-review.text.atts <- cbind(review.train, as.matrix(review_tfidf))
+review.all.fe <- cbind(review.all, as.matrix(review_tfidf))
 
-save(review.text.atts, file = "data/train/review.text.atts.RData")
+review.train.fe <- review.all.fe[!is.na(review.all.fe$stars), ]
+review.test.fe <- review.all.fe[is.na(review.all.fe$stars), ]
+
+save(review.test.fe, file = "data/clean/test/review_clean.RData")
+save(review.train.fe, file = "data/clean/train/review_clean.RData")
 
 
