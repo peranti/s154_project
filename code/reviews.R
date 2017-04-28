@@ -102,7 +102,7 @@ review.all.fe <- cbind(review.all, as.matrix(review_tfidf))
 review.train.fe <- review.all.fe[!is.na(review.all.fe$stars), ]
 review.test.fe <- review.all.fe[is.na(review.all.fe$stars), ]
 
-save(review.test.fe, file = "data/clean/test/review_clean.RData")
-save(review.train.fe, file = "data/clean/train/review_clean.RData")
+save(review.test.fe, file = "data/clean/test/review_test_clean.RData")
+save(review.train.fe, file = "data/clean/train/review_train_clean.RData")
 
 
