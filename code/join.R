@@ -151,7 +151,7 @@ colnames(joined_train) =  final_renaming(joined_train)
 
 
 #Saving The Data
-save(joined_train, file = "data/clean/train/test_join.RData")
+save(joined_test, file = "data/clean/test/test_join.RData")
 save(joined_train, file = "data/clean/train/train_join.RData")
 
 
