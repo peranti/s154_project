@@ -16,6 +16,9 @@ tip <- tip[,-1]
 #Cleaning it up
 colnames(review.train.fe)[which(colnames(review.train.fe) == "text")] = "r.text"
 colnames(tip)[which(colnames(tip) == "text")] = "t.text"
+colnames(user.clean)[which(colnames(user.clean) == "stars")] = "u.stars"
+colnames(business.train.clean)[which(colnames(business.train.clean) == "stars")] = "b.stars"
+
 
 train_data <- list(review = review.train.fe, checkin = checkin.clean, business = business.train.clean, tip = tip, user = user.clean)
 train_cleaned <- list()
@@ -134,7 +137,7 @@ neuter_columns <- function(joined_data) {
                                               Wed_hrs, Thurs_hrs, Fri_hrs, Sat_hrs, Sun_hrs, street.x, lot.x, street.y,Wed_bf, Thu_bf,
                                               Mon_l, Fri_bf, Sat_bf, Wed_l, Tue_l, Sun_bf, Fri_l,Sat_l,Thu_l,Wed_d,Sun_l, Mon_d, Tue_d,
                                               Thu_d,Sun_d,Sat_d, Fri_d, Wed_ln, Tue_ln,Thu_ln, Mon_ln, Fri_ln,Sun_ln,Sat_ln,
-                                              cool.y.y, type, stars.y, stars.y.y))
+                                              cool.y.y, type, t.text, r.text))
   }
 
 
@@ -151,7 +154,7 @@ colnames(joined_train) =  final_renaming(joined_train)
 
 
 #Saving The Data
-save(joined_train, file = "data/clean/train/test_join.RData")
+save(joined_test, file = "data/clean/train/test_join.RData")
 save(joined_train, file = "data/clean/train/train_join.RData")
 
 
