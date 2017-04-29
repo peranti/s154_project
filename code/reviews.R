@@ -5,7 +5,7 @@
 
 
 
-setwd("../")
+#setwd("../")
 
 
 #install.packages(c('tm', 'SnowballC', 'wordcloud', 'topicmodels', 'RWeka'))

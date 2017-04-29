@@ -5,7 +5,7 @@ library(zoo)
 library(tidyr)
 library(magrittr)
 
-setwd("../")
+#setwd("../")
 business <- fread("data/train/yelp_academic_dataset_business_train.csv", data.table = FALSE)
 checkin <- fread("data/yelp_academic_dataset_checkin.csv", data.table = FALSE)
 review <- fread("data/train/yelp_academic_dataset_review_train.csv", data.table = FALSE)
@@ -256,7 +256,7 @@ user.features.df <- cbind(user, years.df)
 user.features.df$yelping_since <- as.IDate(user.features.df$yelping_since)
 
 user.clean <- user.features.df %>%
-  select(-V1, -elite, -type, -user_id, -friends, -name)
+  select(-1,-elite, -type, -friends, -name)
 user.clean[23:35] <- lapply(user.clean[23:35], factor)
 
 ### saving all tables
