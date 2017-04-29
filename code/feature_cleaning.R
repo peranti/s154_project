@@ -259,6 +259,11 @@ user.clean <- user.features.df %>%
   select(-1,-elite, -type, -friends, -name)
 user.clean[23:35] <- lapply(user.clean[23:35], factor)
 
+#### TIP
+
+tip %<>% select(-type)
+tip$date <- as.IDate(tip$date)
+
 ### saving all tables
 
 save(business.train.clean, file = "data/clean/train/business_train_clean.Rdata")
