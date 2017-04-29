@@ -13,8 +13,15 @@ train.set <- joined_train[train.ind, ]
 test.set <- joined_train[-train.ind, ]
 
 # Random Forest Classifier
-# Column Name (review.stars)
-rf.model <- randomForest(formula = stars ~ ., data = train.set,
-                         )
+# Response Variable Column Name (stars)
+rf.model <- randomForest(formula = stars ~ ., data = train.set)
+
+oob.mse <- rf.model$mse
+
+predicted.stars <- predict(rf.model, data = test.set)
+
+
+mse <- mean((test.set$stars - predicted.stars)^2)
+
 
 
