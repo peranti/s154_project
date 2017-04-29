@@ -5,7 +5,7 @@ library(zoo)
 library(tidyr)
 library(magrittr)
 
-setwd("../")
+# setwd("../")
 business <- fread("data/train/yelp_academic_dataset_business_train.csv", data.table = FALSE)
 checkin <- fread("data/yelp_academic_dataset_checkin.csv", data.table = FALSE)
 review <- fread("data/train/yelp_academic_dataset_review_train.csv", data.table = FALSE)
