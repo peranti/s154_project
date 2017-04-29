@@ -14,29 +14,32 @@ tip <- read.csv("data/yelp_academic_dataset_tip.csv", stringsAsFactors = F)
 tip <- tip[,-1]
 
 #Cleaning it up
+colnames(review.train.fe)[which(colnames(review.train.fe) == "text")] = "r.text"
+colnames(tip)[which(colnames(tip) == "text")] = "t.text"
+
 train_data <- list(review = review.train.fe, checkin = checkin.clean, business = business.train.clean, tip = tip, user = user.clean)
 train_cleaned <- list()
 for(i in 1:length(train_data)){
   df <- train_data[[i]]
-  colnames(df) <- paste0(paste0(substr(names(train_data)[i], 1,1), "."), colnames(df)) #after, try removing this too, 
+  #colnames(df) <- paste0(paste0(substr(names(train_data)[i], 1,1), "."), colnames(df)) #after, try removing this too, 
   train_cleaned <- append(train_cleaned, list(df))
 }
 names(train_cleaned) <- c("review", "checkin", "business", "tip", "user")
 
 #Joining reviews with business on the business id
 rev_bus <- dplyr::left_join(x = train_cleaned$business, y = train_cleaned$review, 
-                          by = c("b.business_id" = "r.business_id"))
+                          by = c("business_id" = "business_id"))
 
  
 #Joining reviews and businesses with the checkins for each business
-rb_check <- dplyr::left_join(x = rev_bus, y = train_cleaned$checkin, by = c("b.business_id" = "c.business_id"))
+rb_check <- dplyr::left_join(x = rev_bus, y = train_cleaned$checkin, by = c("business_id" = "business_id"))
 
 #Joining previous with user
-rbc_user <- dplyr::left_join(x = rb_check, y = train_cleaned$user, by = c("r.user_id" = "u.user_id"))
+rbc_user <- dplyr::left_join(x = rb_check, y = train_cleaned$user, by = c("user_id" = "user_id"))
 
 #joining in the previous with tips for a business
-rbcu_tip = dplyr::left_join(x = rbc_user, y = train_cleaned$tip, by = c("b.business_id" = "t.business_id", "r.user_id" = "t.user_id",
-                                                                        "r.date" = "t.date"))
+rbcu_tip = dplyr::left_join(x = rbc_user, y = train_cleaned$tip, by = c("business_id" = "business_id", "user_id" = "user_id",
+                                                                        "date" = "date"))
 
 
 #### CLEANING ##### 
@@ -69,49 +72,39 @@ for (i in 1:num_predictors_init) {
   }
 }
 
-#Saving Data
-save(joined_train, file = "data/clean/train/train_join.RData")
-
-
 ######## TESTING DATA ########
 load("data/clean/test/business_test_clean.RData") #business.test.clean
 load("data/clean/test/review_test_clean.RData") #review.test.fe
 
 
 #Cleaning it up
+colnames(review.test.fe)[which(colnames(review.test.fe) == "text")] = "r.text"
 test_data <- list(review = review.test.fe, checkin = checkin.clean, business = business.test.clean, tip = tip, user = user.clean)
 test_cleaned <- list()
 for(i in 1:length(test_data)){
   df <- test_data[[i]]
-  colnames(df) <- paste0(paste0(substr(names(test_data)[i], 1,1), "."), colnames(df)) #after, try removing this too, 
   test_cleaned <- append(test_cleaned, list(df))
 }
 names(test_cleaned) <- c("review", "checkin", "business", "tip", "user")
 
 #Joining reviews with business on the business id
 rev_bus_test <- dplyr::left_join(x = test_cleaned$business, y = test_cleaned$review, 
-                            by = c("b.business_id" = "r.business_id"))
+                            by = c("business_id" = "business_id"))
 
 
 #Joining reviews and businesses with the checkins for each business
-rb_check_test <- dplyr::left_join(x = rev_bus_test, y = test_cleaned$checkin, by = c("b.business_id" = "c.business_id"))
+rb_check_test <- dplyr::left_join(x = rev_bus_test, y = test_cleaned$checkin, by = c("business_id" = "business_id"))
 
 #Joining previous with user
-rbc_user_test <- dplyr::left_join(x = rb_check_test, y = test_cleaned$user, by = c("r.user_id" = "u.user_id"))
+rbc_user_test <- dplyr::left_join(x = rb_check_test, y = test_cleaned$user, by = c("user_id" = "user_id"))
 
 #joining in the previous with tips for a business
-rbcu_tip_test = dplyr::left_join(x = rbc_user_test, y = test_cleaned$tip, by = c("b.business_id" = "t.business_id", "r.user_id" = "t.user_id",
-                                                                        "r.date" = "t.date"))
+rbcu_tip_test = dplyr::left_join(x = rbc_user_test, y = test_cleaned$tip, by = c("business_id" = "business_id", "user_id" = "user_id",
+                                                                        "date" = "date"))
 
 
 #### CLEANING ##### 
 joined_test = rbcu_tip_test
-
-#func for mode, ignores nyll --- from Stack Overflow
-Mode <- function(x) { 
-  ux <- na.omit(unique(x) )
-  tab <- tabulate(match(x, ux)); ux[tab == max(tab) ]
-}
 
 #Cleaning up the tip text
 na.t.test = is.na(joined_train$t.text)
@@ -134,18 +127,33 @@ for (i in 1:num_predictors_init) {
   }
 }
 
-# #Just doing a check
-# counter = 0
-# sapply(joined_train, function(x) {
-#   if (sum(is.na(x)) != 0) {
-#     counter = counter + 1
-#   }
-# 
-# })
-# counter
 
-#Saving Data
+# Cleaning up the names of both test and train
+neuter_columns <- function(joined_data) {
+  joined_data = subset(joined_data, select=-c(is_open, longitude, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday, Mon_hrs, Tues_hrs,
+                                              Wed_hrs, Thurs_hrs, Fri_hrs, Sat_hrs, Sun_hrs, street.x, lot.x, street.y,Wed_bf, Thu_bf,
+                                              Mon_l, Fri_bf, Sat_bf, Wed_l, Tue_l, Sun_bf, Fri_l,Sat_l,Thu_l,Wed_d,Sun_l, Mon_d, Tue_d,
+                                              Thu_d,Sun_d,Sat_d, Fri_d, Wed_ln, Tue_ln,Thu_ln, Mon_ln, Fri_ln,Sun_ln,Sat_ln,
+                                              cool.y.y, type, stars.y, stars.y.y))
+  }
+
+
+final_renaming <- function(joined_data) {
+  colnames(joined_data)[which(colnames(joined_data) == "stars.x")] = "stars"
+  return(colnames(joined_data))
+}
+
+joined_test = neuter_columns(joined_test)
+joined_train = neuter_columns(joined_train)
+
+colnames(joined_test) =  final_renaming(joined_test)
+colnames(joined_train) =  final_renaming(joined_train)
+
+
+#Saving The Data
 save(joined_train, file = "data/clean/train/test_join.RData")
+save(joined_train, file = "data/clean/train/train_join.RData")
+
 
 
 
