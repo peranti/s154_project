@@ -68,10 +68,11 @@ for (i in 1:num_predictors_init) {
   }
   
   #filling characters with mode
-  if (is.character(joined_train[,i])) {
+  else {
     this_mode = Mode(joined_train[,i])
     joined_train[,i][na.index] = this_mode
   }
+  
 }
 
 ######## TESTING DATA ########
@@ -121,9 +122,13 @@ for (i in 1:num_predictors_init) {
     this_mean = mean(joined_test[,i], na.rm = TRUE)
     joined_test[,i][na.index] = this_mean
   }
+
+  else if (is.character(joined_test[,i])) {
+    print(colnames(joined_test)[i])
+  }
   
   #filling characters with mode
-  if (is.character(joined_test[,i])) {
+  else {
     this_mode = Mode(joined_test[,i])
     joined_test[,i][na.index] = this_mode
   }
@@ -136,7 +141,8 @@ neuter_columns <- function(joined_data, test=FALSE) {
                                               Wed_hrs, Thurs_hrs, Fri_hrs, Sat_hrs, Sun_hrs, street.x, lot.x, street.y,Wed_bf, Thu_bf,
                                               Mon_l, Fri_bf, Sat_bf, Wed_l, Tue_l, Sun_bf, Fri_l,Sat_l,Thu_l,Wed_d,Sun_l, Mon_d, Tue_d,
                                               Thu_d,Sun_d,Sat_d, Fri_d, Wed_ln, Tue_ln,Thu_ln, Mon_ln, Fri_ln,Sun_ln,Sat_ln,
-                                              cool.y.y, type, t.text, r.text, stars.y, latitude))
+                                              cool.y.y, type, t.text, r.text, stars.y, latitude,date,
+                                              business_id, city, name.x, state, user_id, review_id))
   if (test) {
     joined_data = subset(joined_data, select=-c(stars.x, stars.y.y))
     
@@ -148,6 +154,22 @@ neuter_columns <- function(joined_data, test=FALSE) {
 
 final_renaming <- function(joined_data) {
   colnames(joined_data)[which(colnames(joined_data) == "stars.x")] = "stars"
+  colnames(joined_data)[which(colnames(joined_data) == "Coffee&Tea")] = "coffeetea"
+  colnames(joined_data)[which(colnames(joined_data) == "else")] = "else_word"
+  colnames(joined_data)[which(colnames(joined_data) == "2017")] = "u2017_elite"
+  colnames(joined_data)[which(colnames(joined_data) == "2016")] = "u2016_elite"
+  colnames(joined_data)[which(colnames(joined_data) == "2015")] = "u2015_elite"
+  colnames(joined_data)[which(colnames(joined_data) == "2014")] = "u2014_elite"
+  colnames(joined_data)[which(colnames(joined_data) == "2013")] = "u2013_elite"
+  colnames(joined_data)[which(colnames(joined_data) == "2012")] = "u2012_elite"
+  colnames(joined_data)[which(colnames(joined_data) == "2011")] = "u2011_elite"
+  colnames(joined_data)[which(colnames(joined_data) == "2010")] = "u2010_elite"
+  colnames(joined_data)[which(colnames(joined_data) == "2009")] = "u2009_elite"
+  colnames(joined_data)[which(colnames(joined_data) == "2008")] = "u08_elite"
+  colnames(joined_data)[which(colnames(joined_data) == "2007")] = "u07_elite"
+  colnames(joined_data)[which(colnames(joined_data) == "2006")] = "u06_elite"
+  colnames(joined_data)[which(colnames(joined_data) == "2005")] = "u05__elite"
+  colnames(joined_data)[which(colnames(joined_data) == "next")] = "bow_next"
   return(colnames(joined_data))
 }
 
@@ -159,7 +181,7 @@ colnames(joined_train) =  final_renaming(joined_train)
 
 
 #Saving The Data
-save(joined_test, file = "data/clean/train/test_join.RData")
+save(joined_test, file = "data/clean/test/test_join.RData")
 save(joined_train, file = "data/clean/train/train_join.RData")
 
 
