@@ -143,6 +143,10 @@ neuter_columns <- function(joined_data, test=FALSE) {
                                               Thu_d,Sun_d,Sat_d, Fri_d, Wed_ln, Tue_ln,Thu_ln, Mon_ln, Fri_ln,Sun_ln,Sat_ln,
                                               cool.y.y, type, t.text, r.text, stars.y, latitude,date,
                                               business_id, city, name.x, state, user_id, review_id))
+  
+  joined_data$n.activity = as.numeric(as.character(joined_data$n.activity))
+  
+  
   if (test) {
     joined_data = subset(joined_data, select=-c(stars.x, stars.y.y))
     
