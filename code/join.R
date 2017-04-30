@@ -16,8 +16,7 @@ tip <- tip[,-1]
 #Cleaning it up
 colnames(review.train.fe)[which(colnames(review.train.fe) == "text")] = "r.text"
 colnames(tip)[which(colnames(tip) == "text")] = "t.text"
-colnames(user.clean)[which(colnames(user.clean) == "stars")] = "u.stars"
-colnames(business.train.clean)[which(colnames(business.train.clean) == "stars")] = "b.stars"
+business.train.clean = subset(business.train.clean, select=-c(stars))
 
 
 train_data <- list(review = review.train.fe, checkin = checkin.clean, business = business.train.clean, tip = tip, user = user.clean)
@@ -110,34 +109,40 @@ rbcu_tip_test = dplyr::left_join(x = rbc_user_test, y = test_cleaned$tip, by = c
 joined_test = rbcu_tip_test
 
 #Cleaning up the tip text
-na.t.test = is.na(joined_train$t.text)
-joined_train$t.text[na.t.test] = "NO TIP"
+na.t.test = is.na(joined_test$t.text)
+joined_test$t.text[na.t.test] = "NO TIP"
 
-num_predictors_init = length(colnames(joined_train))
+num_predictors_init = length(colnames(joined_test))
 for (i in 1:num_predictors_init) {
-  na.index = is.na(joined_train[,i])
+  na.index = is.na(joined_test[,i])
   
   #filling integers with average
-  if (is.numeric(joined_train[,i])) {
-    this_mean = mean(joined_train[,i], na.rm = TRUE)
-    joined_train[,i][na.index] = this_mean
+  if (is.numeric(joined_test[,i])) {
+    this_mean = mean(joined_test[,i], na.rm = TRUE)
+    joined_test[,i][na.index] = this_mean
   }
   
   #filling characters with mode
-  if (is.character(joined_train[,i])) {
-    this_mode = Mode(joined_train[,i])
-    joined_train[,i][na.index] = this_mode
+  if (is.character(joined_test[,i])) {
+    this_mode = Mode(joined_test[,i])
+    joined_test[,i][na.index] = this_mode
   }
 }
 
 
 # Cleaning up the names of both test and train
-neuter_columns <- function(joined_data) {
+neuter_columns <- function(joined_data, test=FALSE) {
   joined_data = subset(joined_data, select=-c(is_open, longitude, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday, Mon_hrs, Tues_hrs,
                                               Wed_hrs, Thurs_hrs, Fri_hrs, Sat_hrs, Sun_hrs, street.x, lot.x, street.y,Wed_bf, Thu_bf,
                                               Mon_l, Fri_bf, Sat_bf, Wed_l, Tue_l, Sun_bf, Fri_l,Sat_l,Thu_l,Wed_d,Sun_l, Mon_d, Tue_d,
                                               Thu_d,Sun_d,Sat_d, Fri_d, Wed_ln, Tue_ln,Thu_ln, Mon_ln, Fri_ln,Sun_ln,Sat_ln,
-                                              cool.y.y, type, t.text, r.text))
+                                              cool.y.y, type, t.text, r.text, stars.y, latitude))
+  if (test) {
+    joined_data = subset(joined_data, select=-c(stars.x, stars.y.y))
+    
+  }
+  return(joined_data)
+  
   }
 
 
@@ -146,7 +151,7 @@ final_renaming <- function(joined_data) {
   return(colnames(joined_data))
 }
 
-joined_test = neuter_columns(joined_test)
+joined_test = neuter_columns(joined_test, TRUE)
 joined_train = neuter_columns(joined_train)
 
 colnames(joined_test) =  final_renaming(joined_test)
