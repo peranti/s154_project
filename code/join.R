@@ -122,10 +122,6 @@ for (i in 1:num_predictors_init) {
     this_mean = mean(joined_test[,i], na.rm = TRUE)
     joined_test[,i][na.index] = this_mean
   }
-
-  else if (is.character(joined_test[,i])) {
-    print(colnames(joined_test)[i])
-  }
   
   #filling characters with mode
   else {
@@ -142,7 +138,7 @@ neuter_columns <- function(joined_data, test=FALSE) {
                                               Mon_l, Fri_bf, Sat_bf, Wed_l, Tue_l, Sun_bf, Fri_l,Sat_l,Thu_l,Wed_d,Sun_l, Mon_d, Tue_d,
                                               Thu_d,Sun_d,Sat_d, Fri_d, Wed_ln, Tue_ln,Thu_ln, Mon_ln, Fri_ln,Sun_ln,Sat_ln,
                                               cool.y.y, type, t.text, r.text, stars.y, latitude,date,
-                                              business_id, city, name.x, state, user_id, review_id))
+                                              city, name.x, state, user_id, review_id))
   
   joined_data$n.activity = as.numeric(as.character(joined_data$n.activity))
   
