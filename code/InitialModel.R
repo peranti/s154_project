@@ -16,7 +16,8 @@ test.set <- joined_train[-train.ind, ]
 
 # Random Forest Classifier
 # Response Variable Column Name (stars)
-rf.model <- randomForest(formula = as.factor(stars) ~ ., data = train.set) #might not work, I had to add B_id so I could sort
+#rf.model <- randomForest(formula = as.factor(stars) ~ ., data = train.set) #might not work, I had to add B_id so I could sort
+load()
 
 oob.mse <- rf.model$mse
 
@@ -44,3 +45,21 @@ business_ratings = test_predicted %>%
   
 write.csv(business_ratings, file = "results/rf_first.csv", row.names = FALSE)
 
+
+##### Baggings
+
+library(ipred)
+bag.model <- bagging(formula = as.factor(stars) ~ ., data = train.set) 
+save(bag.model, file = "data/clean/train/bagModel.RData")
+
+
+my_bag_predict_train = predict(bag.model,newdata=test.set)
+pred_stars<- as.numeric(my_bag_predict_train)
+actual_stars<- test.set$stars
+agreement.Vector_bag<-(actual_stars == pred_stars)
+length.Test.Vector_bag<-length(actual_stars)
+misClassif_bag<-1-sum(agreement.Vector_bag)/length.Test.Vector_bag
+misClassif_bag
+
+
+##### 
