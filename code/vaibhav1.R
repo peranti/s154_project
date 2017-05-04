@@ -4,8 +4,7 @@ library(zoo)
 library(tidyr)
 
 setwd("../")
-# business <- fread("data/train/yelp_academic_dataset_business_train.csv",
-#                   data.table = FALSE)
+# business <- fread("data/train/yelp_academic_dataset_business_train.csv", data.table = FALSE)
 # checkin <- fread("data/yelp_academic_dataset_checkin.csv", data.table = FALSE)
 # review <- fread("data/train/yelp_academic_dataset_review_train.csv", data.table = FALSE)
 # tip <- fread("data/yelp_academic_dataset_tip.csv", data.table = FALSE)

@@ -12,7 +12,7 @@ review <- fread("data/train/yelp_academic_dataset_review_train.csv", data.table 
 tip <- fread("data/yelp_academic_dataset_tip.csv", data.table = FALSE)
 user <- fread("data/yelp_academic_dataset_user.csv", data.table = FALSE)
 business.test <- fread("data/test/yelp_academic_dataset_business_test.csv", data.table = FALSE)
-review.test <- fread("data/test/yelp_academic_dataset_business_test.csv", data.table = FALSE)
+review.test <- fread("data/test/yelp_academic_dataset_review_test.csv", data.table = FALSE)
 # load("data/train/alltrain.RData")
 
 ## array_parser digests columns that are in array-string form and turns them into usable features when fed a helper function
