@@ -1,5 +1,6 @@
 # Predicting Star Ratings of Yelp Restaurants
-Project Members: Jong Ha Lee, Vaibhav Rammoorthy, Bryan Alcorn, Ying Luo, Paul Bramsen
+Project Members: Jong Ha Lee, Vaibhav Rammoorthy, Bryan Alcorn, Ying Luo, Paul Bramsen[
+[Detailed Report](https://github.com/rollonbears234/s154_project/blob/master/report/stat154_finalreport.pdf)
 
 ## Project Description
 Yelp has anonymously open-sourced some of their data on restaurants and businesses. For our project, we sought to predict the star ratings of restaurants on Yelp using a wide range of features. These included business attributes (hours of business, etc.), check-in count, and, most importantly, a set of bag-of-words predictors that allow us to parse reviews for specific keywords via Natural Language Processing. We prepared and joined the different datasets and then implemented an ensemble model that calculated a truncated mean of the predictions of 7 distinct models to result in our final predictions, which achieved a MSE of 0.32494.
