@@ -1,6 +1,8 @@
 # load("~/stat154-dropbox/train_join.RData")
 # load("~/stat154-dropbox/test_join.RData")
 
+# linear model
+
 indices <- sample(1:nrow(joined_train), nrow(joined_train)*0.2)
 
 joined_train2 <- joined_train[,-15]
